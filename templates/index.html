@@ -12,35 +12,71 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Kanit', sans-serif; }
-        .item, .plate { cursor: grab; user-select: none; }
+        .item, .plate { 
+            cursor: grab; user-select: none; 
+            transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
         .item:active, .plate:active { cursor: grabbing; }
+        .dragging {
+            opacity: 0.6; transform: scale(1.05) rotate(3deg) !important;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2); cursor: grabbing;
+        }
         .drop-zone { border: 2px dashed #ccc; transition: all 0.2s; }
         .drop-zone.drag-over { border-color: #4ade80; background-color: #f0fdf4; transform: scale(1.02); }
         .plate-items-container { min-height: 40px; }
         .item-in-plate { background-color: #dcfce7; color: #166534; }
         .plate-stack {
-            border: 3px solid #9ca3af;
-            background-color: #f3f4f6;
+            border: 3px solid #9ca3af; background-color: #f3f4f6;
             box-shadow: 0 2px 0 #9ca3af, 0 4px 0 #e5e7eb, 0 6px 0 #9ca3af;
-            cursor: pointer;
-            transition: all 0.1s ease-in-out;
+            cursor: pointer; transition: all 0.1s ease-in-out;
         }
         .plate-stack:active {
             transform: translateY(2px);
             box-shadow: 0 1px 0 #9ca3af, 0 2px 0 #e5e7eb, 0 3px 0 #9ca3af;
         }
         .player-tag {
-            padding: 2px 8px;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            margin-left: 8px;
+            padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem;
+            font-weight: bold; margin-left: 8px;
         }
+        .screen-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.75);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 50;
+            transition: opacity 0.3s ease;
+        }
+        /* --- START: Popup/Toast Styles --- */
+        .popup-box {
+            transform: scale(0.7);
+            opacity: 0;
+        }
+        .screen-overlay:not(.hidden) .popup-box {
+            opacity: 1;
+            animation: popup-bounce-in 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+        }
+        @keyframes popup-bounce-in {
+            0% { transform: scale(0.7); opacity: 0; }
+            70% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .toast {
+            animation: toast-in 0.5s forwards, toast-out 0.5s 4s forwards;
+            pointer-events: none;
+        }
+        @keyframes toast-in {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes toast-out {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(120%); opacity: 0; }
+        }
+        /* --- END: Popup/Toast Styles --- */
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
 
-    <div id="main-container" class="w-full max-w-7xl bg-white rounded-xl shadow-2xl p-6 transition-all duration-500 relative">
+    <div id="main-container" class="w-full max-w-7xl bg-white rounded-xl shadow-2xl p-6 transition-all duration-500 relative overflow-hidden">
 
         <!-- หน้าจอสร้าง/เข้าร่วมห้อง -->
         <div id="login-screen">
@@ -64,28 +100,27 @@
                 <ul id="player-list" class="list-disc list-inside space-y-2"></ul>
             </div>
             <button id="start-game-btn" class="hidden w-full mt-6 bg-orange-500 text-white p-4 rounded-lg font-bold text-xl hover:bg-orange-600 transition">เริ่มเกม!</button>
-             <button id="leave-room-btn" class="w-full mt-2 bg-red-500 text-white p-2 rounded-lg font-bold hover:bg-red-600 transition">ออกจากห้อง</button>
+            <button id="leave-room-btn" class="w-full mt-2 bg-red-500 text-white p-2 rounded-lg font-bold hover:bg-red-600 transition">ออกจากห้อง</button>
         </div>
 
         <!-- หน้าจอเล่นเกม -->
         <div id="game-screen" class="hidden">
-            <div class="grid grid-cols-3 gap-4 text-center mb-4 p-3 bg-gray-100 rounded-lg">
-                <div>คะแนนรวม: <span id="score" class="font-bold text-lg">0</span></div>
+            <!-- Game UI -->
+            <div class="grid grid-cols-4 gap-4 text-center mb-4 p-3 bg-gray-100 rounded-lg">
+                <div>ด่าน: <span id="level" class="font-bold text-lg">1</span></div>
+                <div>คะแนนด่านนี้: <span id="score" class="font-bold text-lg">0</span> / <span id="target-score" class="font-bold text-lg">0</span></div>
                 <div class="text-2xl font-bold text-red-500">เวลา: <span id="time">180</span></div>
                 <div><span id="player-count" class="font-bold text-lg">0</span> ผู้เล่น</div>
             </div>
-            
             <div class="grid grid-cols-12 gap-4">
-                <!-- Left column -->
                 <div class="col-span-3 space-y-4">
-                    <!-- **เป้าหมายและสูตรอาหารรวมกัน** -->
                     <div class="bg-yellow-50 p-3 rounded-lg">
                         <h3 class="font-bold text-lg mb-2 text-center">เป้าหมายของคุณ</h3>
-                        <ul id="objectives-list" class="space-y-2"></ul>
+                        <div id="my-objective-timer" class="text-center font-bold text-xl mb-2"></div>
+                        <ul id="objectives-list" class="space-y-2">
+                        </ul>
                     </div>
                 </div>
-
-                <!-- Center column: Workspace -->
                 <div class="col-span-6 flex flex-col space-y-2">
                     <div class="text-center font-bold text-lg">พื้นที่ทำงานของ <span id="my-name" class="text-purple-600"></span></div>
                     <div id="conveyor-belt" class="drop-zone min-h-[80px] p-2 bg-gray-200 rounded-lg flex items-center flex-wrap gap-2">
@@ -96,10 +131,7 @@
                     </div>
                     <button id="submit-order-btn" class="w-full bg-green-500 text-white p-3 rounded-lg font-bold hover:bg-green-600 transition">ส่งอาหาร (จากโต๊ะทำงาน)</button>
                 </div>
-
-                <!-- Right column -->
                 <div class="col-span-3 flex flex-col space-y-4">
-                    <!-- **ปรับปรุง UI แสดงชื่อเพื่อนบ้านบนโซนส่งของ** -->
                     <div id="pass-left-zone" class="drop-zone p-4 rounded-lg text-center bg-blue-100 flex-grow flex flex-col items-center justify-center">
                         <h4 class="text-sm font-bold text-blue-800">ส่งของให้ (ซ้าย)</h4>
                         <p id="pass-left-name" class="font-bold text-xl text-blue-900"></p>
@@ -118,15 +150,44 @@
             </div>
         </div>
         
-        <!-- หน้าจอ Game Over -->
-        <div id="game-over-screen" class="hidden text-center p-8">
-            <h1 class="text-5xl font-bold text-red-600 mb-4">เกมจบแล้ว!</h1>
-            <p id="game-over-message" class="text-xl text-gray-600 mb-4 hidden"></p>
-            <p class="text-2xl mb-6">คะแนนรวมของทีมคือ: <span id="final-score" class="font-bold">0</span></p>
-            <button id="back-to-lobby-btn" class="bg-blue-500 text-white p-3 rounded-lg font-bold hover:bg-blue-600 transition">กลับไปที่ล็อบบี้</button>
+        <!-- หน้าจอจบเกม / สรุป -->
+        <div id="level-complete-screen" class="hidden screen-overlay">
+            <div class="bg-white p-8 rounded-xl shadow-2xl text-center popup-box">
+                <h1 id="level-complete-title" class="text-4xl font-bold text-green-500 mb-4">ผ่านด่าน!</h1>
+                <p id="level-complete-message" class="text-xl mb-2"></p>
+                <p id="total-score-message" class="text-2xl mb-6"></p>
+                <p class="text-gray-500">เตรียมตัวสำหรับด่านต่อไป...</p>
+            </div>
         </div>
-
+        <div id="game-over-screen" class="hidden screen-overlay">
+            <div class="bg-white p-8 rounded-xl shadow-2xl text-center popup-box">
+                <h1 class="text-5xl font-bold text-red-600 mb-4">เกมจบแล้ว!</h1>
+                <p id="game-over-message" class="text-xl text-gray-600 mb-4"></p>
+                <p class="text-2xl mb-6">คะแนนรวมทั้งหมด: <span id="final-total-score" class="font-bold">0</span></p>
+                <button id="back-to-lobby-btn" class="bg-blue-500 text-white p-3 rounded-lg font-bold hover:bg-blue-600 transition">กลับไปที่ล็อบบี้</button>
+            </div>
+        </div>
+        <div id="game-won-screen" class="hidden screen-overlay">
+            <div class="bg-white p-8 rounded-xl shadow-2xl text-center popup-box">
+                <h1 class="text-5xl font-bold text-yellow-500 mb-4">คุณชนะ!</h1>
+                <p class="text-xl text-gray-600 mb-4">สุดยอดไปเลย! คุณผ่านทุกด่านแล้ว</p>
+                <p class="text-2xl mb-6">คะแนนรวมทั้งหมด: <span id="final-won-score" class="font-bold">0</span></p>
+                <button id="won-back-to-lobby-btn" class="bg-blue-500 text-white p-3 rounded-lg font-bold hover:bg-blue-600 transition">กลับไปที่ล็อบบี้</button>
+            </div>
+        </div>
     </div>
+
+    <!-- Popup สำหรับข้อความสำคัญ -->
+    <div id="popup-overlay" class="hidden screen-overlay" style="z-index: 100;">
+        <div class="popup-box bg-white p-6 rounded-xl shadow-2xl text-center w-full max-w-sm mx-4">
+            <p id="popup-message" class="text-lg mb-6 text-gray-700"></p>
+            <button id="popup-close-btn" class="w-full bg-blue-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-600 transition focus:outline-none focus:ring-2 focus:ring-blue-400">ตกลง</button>
+        </div>
+    </div>
+
+    <!-- Toast Container สำหรับการแจ้งเตือนเล็กๆ น้อยๆ -->
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] w-full max-w-xs space-y-3"></div>
+
 
 <script>
     const socket = io();
@@ -136,12 +197,13 @@
     let isHost = false;
     let draggedData = null; 
     let draggedElement = null;
+    let objectiveTimerInterval = null;
 
     // --- UI Elements ---
-    const loginScreen = document.getElementById('login-screen');
-    const lobbyScreen = document.getElementById('lobby-screen');
-    const gameScreen = document.getElementById('game-screen');
-    const gameOverScreen = document.getElementById('game-over-screen');
+    const allScreens = ['login', 'lobby', 'game', 'level-complete', 'game-over', 'game-won'];
+    const screens = {};
+    allScreens.forEach(id => screens[id] = document.getElementById(`${id}-screen`));
+    
     const playerNameInput = document.getElementById('player-name');
     const roomCodeInput = document.getElementById('room-code-input');
     const createBtn = document.getElementById('create-btn');
@@ -151,7 +213,9 @@
     const playerList = document.getElementById('player-list');
     const startGameBtn = document.getElementById('start-game-btn');
     const scoreEl = document.getElementById('score');
+    const targetScoreEl = document.getElementById('target-score');
     const timeEl = document.getElementById('time');
+    const levelEl = document.getElementById('level');
     const playerCountEl = document.getElementById('player-count');
     const myNameEl = document.getElementById('my-name');
     const objectivesListEl = document.getElementById('objectives-list');
@@ -159,22 +223,74 @@
     const workspace = document.getElementById('workspace');
     const submitOrderBtn = document.getElementById('submit-order-btn');
     const plateStack = document.getElementById('plate-stack');
-    const finalScoreEl = document.getElementById('final-score');
-    const backToLobbyBtn = document.getElementById('back-to-lobby-btn');
     const passLeftNameEl = document.getElementById('pass-left-name');
     const passRightNameEl = document.getElementById('pass-right-name');
+
+    // Popup elements
+    const popupOverlay = document.getElementById('popup-overlay');
+    const popupMessage = document.getElementById('popup-message');
+    const popupCloseBtn = document.getElementById('popup-close-btn');
+
+    // End screens elements
+    const levelCompleteMessageEl = document.getElementById('level-complete-message');
+    const totalScoreMessageEl = document.getElementById('total-score-message');
     const gameOverMessageEl = document.getElementById('game-over-message');
+    const finalTotalScoreEl = document.getElementById('final-total-score');
+    const finalWonScoreEl = document.getElementById('final-won-score');
+    const backToLobbyBtn = document.getElementById('back-to-lobby-btn');
+    const wonBackToLobbyBtn = document.getElementById('won-back-to-lobby-btn');
 
     function showScreen(screenName) {
-        ['login', 'lobby', 'game', 'game-over'].forEach(id => {
-            document.getElementById(`${id}-screen`).classList.add('hidden');
-        });
-        if (screenName) {
-            document.getElementById(`${screenName}-screen`).classList.remove('hidden');
+        if(objectiveTimerInterval) clearInterval(objectiveTimerInterval);
+        allScreens.forEach(id => screens[id].classList.add('hidden'));
+        if (screenName && screens[screenName]) {
+            screens[screenName].classList.remove('hidden');
         }
     }
+    
+    // *** START OF CHANGES: New Toast & Popup Functions ***
+    function showToast(message, type = 'info') {
+        const toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) return;
+        const toast = document.createElement('div');
+        
+        let bgColor, textColor, icon;
+        switch (type) {
+            case 'success':
+                bgColor = 'bg-green-500'; textColor = 'text-white'; icon = '✓';
+                break;
+            case 'warning':
+                bgColor = 'bg-yellow-500'; textColor = 'text-white'; icon = '!';
+                break;
+            case 'error':
+                bgColor = 'bg-red-500'; textColor = 'text-white'; icon = '✗';
+                break;
+            default:
+                bgColor = 'bg-blue-500'; textColor = 'text-white'; icon = 'i';
+        }
 
-    // --- Element Creation Functions ---
+        toast.className = `toast p-4 rounded-lg shadow-lg flex items-center space-x-3 ${bgColor} ${textColor} font-bold`;
+        toast.innerHTML = `<span>${message}</span>`;
+        
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 4500); // Remove after animation finishes
+    }
+
+    function showPopup(message) {
+        popupMessage.textContent = message;
+        popupOverlay.classList.remove('hidden');
+    }
+    popupCloseBtn.addEventListener('click', () => popupOverlay.classList.add('hidden'));
+    popupOverlay.addEventListener('click', (e) => {
+        if (e.target === popupOverlay) {
+            popupOverlay.classList.add('hidden');
+        }
+    });
+    // *** END OF CHANGES ***
+
     function createItemElement(itemName) {
         const item = document.createElement('div');
         item.textContent = itemName;
@@ -185,7 +301,9 @@
             draggedData = {type: 'ingredient', name: itemName};
             draggedElement = item;
             e.dataTransfer.setData('text/plain', '');
+            setTimeout(() => item.classList.add('dragging'), 0);
         });
+        item.addEventListener('dragend', () => item.classList.remove('dragging'));
         return item;
     }
 
@@ -194,12 +312,10 @@
         plate.className = 'plate drop-zone bg-white p-3 rounded-lg shadow-md w-4/5 flex flex-col items-center';
         plate.draggable = true;
         plate.id = 'plate-' + Date.now() + Math.random();
-
         const title = document.createElement('span');
         title.className = 'font-bold text-sm mb-2 text-gray-600';
         title.textContent = 'จาน';
         plate.appendChild(title);
-
         const itemsContainer = document.createElement('div');
         itemsContainer.className = 'plate-items-container flex flex-wrap justify-center gap-1';
         contents.forEach(ing => {
@@ -209,19 +325,18 @@
             itemsContainer.appendChild(itemEl);
         });
         plate.appendChild(itemsContainer);
-        
         plate.addEventListener('dragstart', (e) => {
             e.stopPropagation();
             draggedData = {type: 'plate', contents: contents};
             draggedElement = plate;
             e.dataTransfer.setData('text/plain', '');
+            setTimeout(() => plate.classList.add('dragging'), 0);
         });
-
+        plate.addEventListener('dragend', () => plate.classList.remove('dragging'));
         plate.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); plate.classList.add('drag-over'); });
         plate.addEventListener('dragleave', e => { e.stopPropagation(); plate.classList.remove('drag-over'); });
         plate.addEventListener('drop', e => {
-            e.preventDefault();
-            e.stopPropagation();
+            e.preventDefault(); e.stopPropagation();
             plate.classList.remove('drag-over');
             if (draggedData && draggedData.type === 'ingredient') {
                 const newContents = [...contents, draggedData.name];
@@ -234,25 +349,17 @@
         return plate;
     }
 
-    // --- Drag & Drop Setup ---
     document.querySelectorAll('.drop-zone').forEach(zone => {
         zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
         zone.addEventListener('dragleave', e => { zone.classList.remove('drag-over'); });
         zone.addEventListener('drop', e => {
-            e.preventDefault();
-            zone.classList.remove('drag-over');
-            if (!draggedElement || !draggedData) return;
-            if (draggedElement.contains(e.target)) return;
-            
+            e.preventDefault(); zone.classList.remove('drag-over');
+            if (!draggedElement || !draggedData || (draggedElement.contains(e.target) && zone.id !== 'workspace')) return;
             const targetId = zone.id;
             switch (targetId) {
                 case 'pass-left-zone':
                 case 'pass-right-zone':
-                    socket.emit('player_action', {
-                        room_id: currentRoomId, type: 'pass_item',
-                        direction: targetId.includes('left') ? 'left' : 'right',
-                        item: draggedData
-                    });
+                    socket.emit('player_action', { room_id: currentRoomId, type: 'pass_item', direction: targetId.includes('left') ? 'left' : 'right', item: draggedData });
                     draggedElement.remove();
                     break;
                 case 'trash-zone':
@@ -260,105 +367,82 @@
                     draggedElement.remove();
                     break;
                 case 'workspace':
-                    if (draggedData.type === 'plate') {
-                         if (workspace.querySelector('.plate')) return;
+                    if (draggedData.type === 'plate' && !workspace.querySelector('.plate')) {
                          socket.emit('player_action', { room_id: currentRoomId, type: 'take_from_conveyor', item: draggedData });
                          draggedElement.remove();
                     }
                     break;
             }
-            draggedElement = null;
-            draggedData = null;
+            draggedElement = null; draggedData = null;
         });
     });
 
-    // --- Button Listeners ---
     createBtn.addEventListener('click', () => {
         myName = playerNameInput.value.trim();
-        if (!myName) { alert('กรุณาใส่ชื่อของคุณ!'); return; }
+        if (!myName) { showPopup('กรุณาใส่ชื่อของคุณ!'); return; }
         socket.emit('create_room', { name: myName });
     });
     joinBtn.addEventListener('click', () => {
         myName = playerNameInput.value.trim();
         const roomId = roomCodeInput.value.trim().toUpperCase();
-        if (!myName || !roomId) { alert('กรุณาใส่ชื่อและรหัสห้อง!'); return; }
+        if (!myName || !roomId) { showPopup('กรุณาใส่ชื่อและรหัสห้อง!'); return; }
         socket.emit('join_room', { name: myName, room_id: roomId });
     });
-    leaveRoomBtn.addEventListener('click', () => { location.reload(); });
+    leaveRoomBtn.addEventListener('click', () => location.reload());
     roomCodeDisplay.addEventListener('click', () => {
-        navigator.clipboard.writeText(currentRoomId).then(() => { alert('คัดลอกรหัสห้องแล้ว!'); });
+        if(currentRoomId) navigator.clipboard.writeText(currentRoomId).then(() => showToast('คัดลอกรหัสห้องแล้ว!', 'success'));
     });
     startGameBtn.addEventListener('click', () => socket.emit('start_game', { room_id: currentRoomId }));
     submitOrderBtn.addEventListener('click', () => socket.emit('player_action', { room_id: currentRoomId, type: 'submit_order' }));
-    
-    // **เปลี่ยนปุ่มกลับล็อบบี้ให้เปลี่ยนหน้าจอแทนการโหลดใหม่**
     backToLobbyBtn.addEventListener('click', () => {
         showScreen('lobby');
     });
-
+    wonBackToLobbyBtn.addEventListener('click', () => showScreen('lobby'));
     plateStack.addEventListener('click', () => {
         if (!workspace.querySelector('.plate')) {
             socket.emit('player_action', { room_id: currentRoomId, type: 'get_empty_plate' });
         } else {
-            alert('คุณมีจานบนโต๊ะทำงานแล้ว!');
+            showToast('คุณมีจานบนโต๊ะทำงานแล้ว!', 'warning');
         }
     });
 
-    // --- SocketIO Handlers ---
     socket.on('connect', () => { mySid = socket.id; showScreen('login'); });
-    socket.on('disconnect', () => { alert('การเชื่อมต่อหลุด!'); showScreen('login'); });
-
+    socket.on('disconnect', () => { showPopup('การเชื่อมต่อหลุด!'); showScreen('login'); location.reload(); });
     socket.on('room_created', (data) => {
-        currentRoomId = data.room_id;
-        isHost = data.is_host;
-        roomCodeDisplay.textContent = currentRoomId;
-        showScreen('lobby');
+        currentRoomId = data.room_id; isHost = data.is_host;
+        roomCodeDisplay.textContent = currentRoomId; showScreen('lobby');
     });
     socket.on('join_success', (data) => {
-        currentRoomId = data.room_id;
-        isHost = data.is_host;
-        roomCodeDisplay.textContent = currentRoomId;
-        showScreen('lobby');
+        currentRoomId = data.room_id; isHost = data.is_host;
+        roomCodeDisplay.textContent = currentRoomId; showScreen('lobby');
     });
-    
     socket.on('update_lobby', (data) => {
+        if (screens.lobby.classList.contains('hidden')) return;
+        if (currentRoomId !== data.room_id) return;
         playerList.innerHTML = '';
         data.players.forEach(p => {
-            const playerItem = document.createElement('li');
-            playerItem.className = 'text-gray-700';
-            playerItem.textContent = p.name;
+            const li = document.createElement('li'); li.className = 'text-gray-700';
+            li.textContent = p.name;
             if (p.sid === data.host_sid) {
                  const hostTag = document.createElement('span');
                  hostTag.className = 'player-tag bg-yellow-400 text-yellow-900';
-                 hostTag.textContent = 'Host';
-                 playerItem.appendChild(hostTag);
+                 hostTag.textContent = 'Host'; li.appendChild(hostTag);
             }
             if (p.sid === mySid) {
                  const youTag = document.createElement('span');
                  youTag.className = 'player-tag bg-blue-400 text-white';
-                 youTag.textContent = 'You';
-                 playerItem.appendChild(youTag);
+                 youTag.textContent = 'You'; li.appendChild(youTag);
             }
-            playerList.appendChild(playerItem);
+            playerList.appendChild(li);
         });
         isHost = (mySid === data.host_sid);
-        if (isHost && data.players.length >= 1) { 
-            startGameBtn.classList.remove('hidden');
-        } else {
-            startGameBtn.classList.add('hidden');
-        }
+        startGameBtn.classList.toggle('hidden', !(isHost && data.players.length >= 1));
     });
-
     socket.on('new_host', (data) => {
         isHost = (mySid === data.host_sid);
-        if (isHost) {
-            startGameBtn.classList.remove('hidden');
-            alert('คุณได้รับตำแหน่ง Host!');
-        }
+        if (isHost) showToast('คุณได้รับตำแหน่ง Host!', 'info');
     });
-
-    socket.on('error_message', (data) => alert(data.message));
-    
+    socket.on('error_message', (data) => showPopup(data.message));
     socket.on('game_started', (data) => {
         showScreen('game');
         mySid = data.your_sid;
@@ -367,77 +451,91 @@
         myNameEl.textContent = data.your_name;
         updateGameStateUI(data.initial_state);
     });
-
     socket.on('update_game_state', (state) => updateGameStateUI(state));
-
-    function updateGameStateUI(state) {
-        if (!state) return;
-        
-        scoreEl.textContent = state.score;
-        timeEl.textContent = state.time_left;
-        playerCountEl.textContent = state.player_order_sids.length;
-
-        objectivesListEl.innerHTML = '';
-        if (state.all_player_objectives) {
-            state.all_player_objectives.forEach(obj => {
-                const isMyObjective = obj.player_name === myName;
-                if (isMyObjective) {
-                    const ingredients = obj.ingredients.join(', ');
-                    const objectiveHTML = `
-                        <li class="bg-green-100 p-2 rounded shadow-sm mb-2 border-l-4 border-green-500">
-                            <div class="font-bold text-green-800">เป้าหมาย: <span class="text-gray-800">${obj.objective_name}</span></div>
-                            <div class="text-xs text-gray-500">(${obj.points} คะแนน)</div>
-                            <div class="text-sm text-gray-600 mt-1">ส่วนผสม: ${ingredients}</div>
-                        </li>
-                    `;
-                    objectivesListEl.innerHTML = objectiveHTML;
-                }
-            });
-        }
-        
-        const myState = state.players_state[mySid];
-        workspace.innerHTML = '<h4 class="font-bold text-gray-400 absolute top-2">โต๊ะทำงาน</h4>';
-        if (myState && myState.plate !== null) {
-            const myPlate = createPlateElement(myState.plate);
-            workspace.appendChild(myPlate);
-        }
-    }
-    
-    socket.on('receive_item', (data) => {
-        if (conveyorBelt.querySelector('span.text-gray-500')) {
-            conveyorBelt.innerHTML = '';
-        }
-        const itemData = data.item;
-        let element;
-        if (itemData.type === 'plate') {
-            element = createPlateElement(itemData.contents);
-        } else if (itemData.type === 'ingredient') {
-            element = createItemElement(itemData.name);
-        }
-        if (element) conveyorBelt.appendChild(element);
-    });
-
-    // **เพิ่ม handler สำหรับอัปเดตเพื่อนบ้าน**
     socket.on('update_neighbors', (data) => {
         passLeftNameEl.textContent = data.left_neighbor;
         passRightNameEl.textContent = data.right_neighbor;
     });
+    socket.on('receive_item', (data) => {
+        if (conveyorBelt.querySelector('span.text-gray-500')) conveyorBelt.innerHTML = '';
+        const itemData = data.item;
+        let element = (itemData.type === 'plate') ? createPlateElement(itemData.contents) : createItemElement(itemData.name);
+        if (element) conveyorBelt.appendChild(element);
+    });
+    socket.on('action_success', (data) => showToast(data.message, 'success'));
+    socket.on('action_fail', (data) => showToast(data.message, 'error'));
+    socket.on('show_alert', (data) => showToast(data.message, 'info'));
 
-    socket.on('action_success', (data) => console.log("Success:", data.message));
-    socket.on('action_fail', (data) => alert("ล้มเหลว: " + data.message));
-
-    // **อัปเดต handler ของ game_over ให้แสดงข้อความได้**
+    socket.on('clear_all_items', () => {
+        conveyorBelt.innerHTML = '<span class="text-gray-500">ของที่ได้รับจะมาที่นี่...</span>';
+    });
+    socket.on('level_complete', (data) => {
+        levelCompleteMessageEl.textContent = `คะแนนในด่าน ${data.level}: ${data.level_score}`;
+        totalScoreMessageEl.textContent = `คะแนนรวม: ${data.total_score}`;
+        showScreen('level-complete');
+    });
+    socket.on('start_next_level', (data) => {
+        showScreen('game');
+        updateGameStateUI(data);
+    });
     socket.on('game_over', (data) => {
-        finalScoreEl.textContent = data.score;
-        if (data.message) {
-            gameOverMessageEl.textContent = data.message;
-            gameOverMessageEl.classList.remove('hidden');
-        } else {
-            gameOverMessageEl.textContent = '';
-            gameOverMessageEl.classList.add('hidden');
-        }
+        finalTotalScoreEl.textContent = data.total_score;
+        gameOverMessageEl.textContent = data.message || '';
+        gameOverMessageEl.classList.toggle('hidden', !data.message);
         showScreen('game-over');
     });
+    socket.on('game_won', (data) => {
+        finalWonScoreEl.textContent = data.total_score;
+        showScreen('game-won');
+    });
+
+    function updateGameStateUI(state) {
+        if (!state || screens.game.classList.contains('hidden')) return;
+        scoreEl.textContent = state.score;
+        targetScoreEl.textContent = state.target_score;
+        timeEl.textContent = state.time_left;
+        levelEl.textContent = state.level;
+        playerCountEl.textContent = state.player_order_sids.length;
+
+        const myObjectiveDisplay = state.all_player_objectives.find(obj => obj.player_name === myName);
+        
+        if(objectiveTimerInterval) clearInterval(objectiveTimerInterval);
+        objectiveTimerInterval = setInterval(() => {
+            const timerEl = document.getElementById('my-objective-timer');
+            if (myObjectiveDisplay && timerEl) {
+                 const expiryTimeMs = myObjectiveDisplay.expires_at * 1000;
+                 const nowMs = Date.now();
+                 const timeLeft = Math.max(0, Math.round((expiryTimeMs - nowMs) / 1000));
+                 timerEl.innerHTML = `เหลือเวลา: <span class="text-red-500">${timeLeft}</span> วิ`;
+                 if (timeLeft <= 10 && timeLeft > 0) {
+                     timerEl.classList.add('animate-pulse');
+                 } else {
+                     timerEl.classList.remove('animate-pulse');
+                 }
+            }
+        }, 1000);
+        
+        objectivesListEl.innerHTML = '';
+        if (myObjectiveDisplay) {
+            const ingredients = myObjectiveDisplay.ingredients.join(', ');
+            objectivesListEl.innerHTML = `
+                <li class="bg-green-100 p-3 rounded-lg shadow-sm border-l-4 border-green-500">
+                    <div class="font-bold text-green-800 text-lg">${myObjectiveDisplay.objective_name}</div>
+                    <div class="text-xs text-gray-500 mb-1">(${myObjectiveDisplay.points} คะแนน)</div>
+                    <div class="text-sm text-gray-600">ส่วนผสม: ${ingredients}</div>
+                </li>`;
+        } else {
+            if(objectiveTimerInterval) clearInterval(objectiveTimerInterval);
+            document.getElementById('my-objective-timer').innerHTML = '';
+            objectivesListEl.innerHTML = '<li>ไม่มีเป้าหมายในขณะนี้</li>';
+        }
+        
+        const myState = state.players_state[mySid];
+        workspace.innerHTML = '<h4 class="font-bold text-gray-400 absolute top-2">โต๊ะทำงาน</h4>';
+        if (myState && Array.isArray(myState.plate)) {
+            workspace.appendChild(createPlateElement(myState.plate));
+        }
+    }
 </script>
 </body>
 </html>
