@@ -24,7 +24,29 @@
         .drop-zone { border: 2px dashed #ccc; transition: all 0.2s; }
         .drop-zone.drag-over { border-color: #4ade80; background-color: #f0fdf4; transform: scale(1.02); }
         .plate-items-container { min-height: 40px; }
-        .item-in-plate { background-color: #dcfce7; color: #166534; }
+        
+        /* --- START: แก้ไขการแสดงผล Emoji --- */
+        .item {
+            font-size: 2rem; /* เพิ่มขนาดฟอนต์สำหรับ emoji */
+            line-height: 1;  /* ปรับความสูงของบรรทัด */
+            width: 50px;     /* กำหนดความกว้างคงที่ */
+            height: 50px;    /* กำหนดความสูงคงที่ */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border-radius: 9999px; /* ทำให้เป็นวงกลม */
+        }
+        .item-in-plate { 
+            background-color: #dcfce7; 
+            color: #166534;
+            font-size: 1.25rem; /* emoji ขนาดใหญ่ขึ้นบนจาน */
+            line-height: 1;
+            padding: 4px;
+            border-radius: 8px;
+        }
+        /* --- END: แก้ไขการแสดงผล Emoji --- */
+
         .plate-stack {
             border: 3px solid #9ca3af; background-color: #f3f4f6;
             box-shadow: 0 2px 0 #9ca3af, 0 4px 0 #e5e7eb, 0 6px 0 #9ca3af;
@@ -45,7 +67,6 @@
             z-index: 50;
             transition: opacity 0.3s ease;
         }
-        /* --- START: Popup/Toast Styles --- */
         .popup-box {
             transform: scale(0.7);
             opacity: 0;
@@ -71,7 +92,6 @@
             from { transform: translateX(0); opacity: 1; }
             to { transform: translateX(120%); opacity: 0; }
         }
-        /* --- END: Popup/Toast Styles --- */
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
@@ -248,7 +268,6 @@
         }
     }
     
-    // *** START OF CHANGES: New Toast & Popup Functions ***
     function showToast(message, type = 'info') {
         const toastContainer = document.getElementById('toast-container');
         if (!toastContainer) return;
@@ -276,7 +295,7 @@
         
         setTimeout(() => {
             toast.remove();
-        }, 4500); // Remove after animation finishes
+        }, 4500);
     }
 
     function showPopup(message) {
@@ -289,12 +308,11 @@
             popupOverlay.classList.add('hidden');
         }
     });
-    // *** END OF CHANGES ***
 
     function createItemElement(itemName) {
         const item = document.createElement('div');
         item.textContent = itemName;
-        item.className = 'item bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full font-semibold shadow-sm m-1';
+        item.className = 'item bg-yellow-200 text-yellow-800 font-semibold shadow-sm m-1';
         item.draggable = true;
         item.id = 'item-' + Date.now() + Math.random();
         item.addEventListener('dragstart', (e) => {
@@ -317,10 +335,10 @@
         title.textContent = 'จาน';
         plate.appendChild(title);
         const itemsContainer = document.createElement('div');
-        itemsContainer.className = 'plate-items-container flex flex-wrap justify-center gap-1';
+        itemsContainer.className = 'plate-items-container flex flex-wrap justify-center gap-2 items-center';
         contents.forEach(ing => {
             const itemEl = document.createElement('span');
-            itemEl.className = 'item-in-plate px-2 py-1 rounded text-xs font-medium';
+            itemEl.className = 'item-in-plate';
             itemEl.textContent = ing;
             itemsContainer.appendChild(itemEl);
         });
@@ -517,12 +535,13 @@
         
         objectivesListEl.innerHTML = '';
         if (myObjectiveDisplay) {
-            const ingredients = myObjectiveDisplay.ingredients.join(', ');
+            const ingredients = myObjectiveDisplay.ingredients.join(' ');
             objectivesListEl.innerHTML = `
                 <li class="bg-green-100 p-3 rounded-lg shadow-sm border-l-4 border-green-500">
                     <div class="font-bold text-green-800 text-lg">${myObjectiveDisplay.objective_name}</div>
                     <div class="text-xs text-gray-500 mb-1">(${myObjectiveDisplay.points} คะแนน)</div>
-                    <div class="text-sm text-gray-600">ส่วนผสม: ${ingredients}</div>
+                    <div class="text-sm text-gray-600">ส่วนผสม:</div>
+                    <div class="text-2xl mt-1">${ingredients}</div>
                 </li>`;
         } else {
             if(objectiveTimerInterval) clearInterval(objectiveTimerInterval);
