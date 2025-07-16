@@ -78,16 +78,70 @@
         .toast { animation: toast-in 0.5s forwards, toast-out 0.5s 4s forwards; pointer-events: none; }
         @keyframes toast-in { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes toast-out { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: 0; } }
+
+        /* [ADDED] Custom slider styles for better look and feel */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: var(--bg-interactive);
+            border-radius: 5px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+            margin-top: -6px;
+            transition: transform .2s ease-in-out, box-shadow .2s ease-in-out;
+        }
+        input[type=range]:hover::-webkit-slider-thumb {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent-color) 30%, transparent);
+        }
+        input[type=range]::-moz-range-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: var(--bg-interactive);
+            border-radius: 5px;
+        }
+        input[type=range]::-moz-range-thumb {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+            border: none;
+            transition: transform .2s ease-in-out, box-shadow .2s ease-in-out;
+        }
+        input[type=range]:hover::-moz-range-thumb {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent-color) 30%, transparent);
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-dvh p-2 sm:p-4">
 
     <div id="main-container" class="w-full h-full max-w-screen-2xl bg-[var(--bg-secondary)] rounded-xl shadow-2xl p-4 sm:p-6 transition-all duration-500 relative overflow-hidden flex flex-col">
         
-        <div class="absolute top-4 right-4 z-10">
-            <button id="theme-toggle" class="p-2 rounded-full bg-[var(--bg-interactive)] text-[var(--text-primary)]">
-                <svg id="theme-icon-sun" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                <svg id="theme-icon-moon" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+        <div class="absolute top-4 left-4 z-20">
+            <button id="settings-btn" class="p-2 rounded-full bg-[var(--bg-interactive)] text-[var(--text-primary)] hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.43.992a6.759 6.759 0 0 1 0 1.905c.008.379.137.75.43.99l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.6 6.6 0 0 1-.22.128c-.333.183-.582.495-.645.869l-.213 1.28c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 0 1-1.37-.49l-1.296-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.759 6.759 0 0 1 0-1.905c-.008-.379-.137-.75-.43-.99l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.49l1.217.456c.355.133.75.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.645-.869l.213-1.28Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
             </button>
         </div>
 
@@ -173,6 +227,31 @@
         <div id="game-won-screen" class="hidden screen-overlay"><div class="p-8 rounded-xl shadow-2xl text-center popup-box"><h1 class="text-5xl font-bold text-yellow-500 dark:text-yellow-400 mb-4">คุณชนะ!</h1><p class="text-xl text-[var(--text-secondary)] mb-4">สุดยอดไปเลย! คุณผ่านทุกด่านแล้ว</p><p class="text-2xl mb-6">คะแนนรวมทั้งหมด: <span id="final-won-score" class="font-bold">0</span></p><button id="won-back-to-lobby-btn" class="bg-blue-500 text-white p-3 rounded-lg font-bold hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition">กลับไปที่ล็อบบี้</button></div></div>
     </div>
 
+    <!-- [MODIFIED] Settings Popup with transitions -->
+    <div id="settings-popup" class="hidden screen-overlay" style="z-index: 101;">
+        <div class="popup-box p-6 rounded-xl shadow-2xl w-full max-w-sm mx-4">
+            <h2 class="text-2xl font-bold text-center mb-6">ตั้งค่า</h2>
+            
+            <div class="flex items-center justify-between mb-4 p-3 bg-[var(--bg-tertiary)] rounded-lg transition-all duration-200 ease-in-out hover:bg-[var(--bg-interactive)]">
+                <label for="theme-toggle-input" class="text-lg font-medium">โหมดกลางคืน</label>
+                <button id="theme-toggle" class="relative inline-flex items-center h-6 rounded-full w-11 transition-colors ease-in-out duration-300 bg-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-color)] focus:ring-offset-[var(--bg-tertiary)]">
+                    <span class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform ease-in-out duration-300 translate-x-1 dark:translate-x-6"></span>
+                </button>
+            </div>
+            
+            <div class="mb-6 p-3 bg-[var(--bg-tertiary)] rounded-lg transition-all duration-200 ease-in-out hover:bg-[var(--bg-interactive)]">
+                <label for="volume-slider" class="block text-lg font-medium mb-2">เสียงประกอบ</label>
+                <div class="flex items-center gap-4">
+                    <span class="text-xl">🔈</span>
+                    <input id="volume-slider" type="range" min="0" max="100" value="80" class="w-full">
+                    <span class="text-xl">🔊</span>
+                </div>
+            </div>
+
+            <button id="settings-close-btn" class="w-full bg-blue-500 text-white px-6 py-3 rounded-lg font-bold transition-all duration-200 ease-in-out transform hover:scale-105 hover:bg-blue-600 active:scale-95 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-[var(--bg-secondary)]">ปิด</button>
+        </div>
+    </div>
+
     <div id="popup-overlay" class="hidden screen-overlay" style="z-index: 100;"><div class="popup-box p-6 rounded-xl shadow-2xl text-center w-full max-w-sm mx-4"><p id="popup-message" class="text-lg mb-6"></p><button id="popup-close-btn" class="w-full bg-blue-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-400">ตกลง</button></div></div>
     <div id="toast-container" class="fixed top-5 right-5 z-[100] w-full max-w-xs space-y-3"></div>
 
@@ -196,9 +275,22 @@
 
     let audioInitialized = false;
     const sounds = {};
+
+    // [MODIFIED] Function to convert slider value (0-100) to decibels for Tone.js
+    function convertVolumeToDb(value) {
+        if (value == 0) return -Infinity;
+        return (value / 100) * 40 - 40;
+    }
+
     function initAudio() {
         if (audioInitialized) return;
         Tone.start();
+
+        // [MODIFIED] Set master volume on initialization
+        const savedVolume = localStorage.getItem('gameVolume') || '80';
+        document.getElementById('volume-slider').value = savedVolume;
+        Tone.Destination.volume.value = convertVolumeToDb(savedVolume);
+
         sounds.click = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 0.2 }, volume: -15 }).toDestination();
         sounds.success = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 }, volume: -10 }).toDestination();
         sounds.error = new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.1 }, volume: -15 }).toDestination();
@@ -261,6 +353,13 @@
     const backToLobbyBtn = document.getElementById('back-to-lobby-btn');
     const wonBackToLobbyBtn = document.getElementById('won-back-to-lobby-btn');
     const abilityStationEl = document.getElementById('ability-station');
+    
+    // [ADDED] Settings elements
+    const settingsBtn = document.getElementById('settings-btn');
+    const settingsPopup = document.getElementById('settings-popup');
+    const settingsCloseBtn = document.getElementById('settings-close-btn');
+    const volumeSlider = document.getElementById('volume-slider');
+    const themeToggleBtn = document.getElementById('theme-toggle');
 
     function showScreen(screenName) {
         allScreens.forEach(id => screens[id].classList.add('hidden'));
@@ -464,6 +563,7 @@
         return plate;
     }
 
+    // --- Event Listeners ---
     createBtn.addEventListener('click', () => { initAudio(); playSound('click'); myName = playerNameInput.value.trim(); if (!myName) { showPopup('กรุณาใส่ชื่อของคุณ!'); return; } socket.emit('create_room', { name: myName }); });
     joinBtn.addEventListener('click', () => { initAudio(); playSound('click'); myName = playerNameInput.value.trim(); const roomId = roomCodeInput.value.trim().toUpperCase(); if (!myName || !roomId) { showPopup('กรุณาใส่ชื่อและรหัสห้อง!'); return; } socket.emit('join_room', { name: myName, room_id: roomId }); });
     leaveRoomBtn.addEventListener('click', () => { playSound('click'); location.reload(); });
@@ -473,6 +573,19 @@
     backToLobbyBtn.addEventListener('click', () => { playSound('click'); showScreen('lobby'); });
     wonBackToLobbyBtn.addEventListener('click', () => { playSound('click'); showScreen('lobby'); });
 
+    // [ADDED] Settings Listeners
+    settingsBtn.addEventListener('click', () => { settingsPopup.classList.remove('hidden'); });
+    settingsCloseBtn.addEventListener('click', () => { settingsPopup.classList.add('hidden'); });
+    volumeSlider.addEventListener('input', (e) => {
+        const volumeValue = e.target.value;
+        localStorage.setItem('gameVolume', volumeValue);
+        if (audioInitialized) {
+            Tone.Destination.volume.value = convertVolumeToDb(volumeValue);
+        }
+    });
+
+
+    // --- Socket.IO Listeners ---
     socket.on('connect', () => { mySid = socket.id; showScreen('login'); });
     socket.on('disconnect', () => { showPopup('การเชื่อมต่อหลุด!'); showScreen('login'); setTimeout(() => location.reload(), 2000); });
     socket.on('room_created', (data) => { currentRoomId = data.room_id; isHost = data.is_host; roomCodeDisplay.textContent = currentRoomId; showScreen('lobby'); });
@@ -533,7 +646,6 @@
         if (myObjectiveDisplay) {
             myCurrentObjectiveIngredients = myObjectiveDisplay.ingredients.map(i => i.name);
             
-            // --- [แก้ไข] แสดงข้อมูลว่าวัตถุดิบแปรรูปมาจากไหน ---
             const ingredientsHtml = myObjectiveDisplay.ingredients.map(ing_data => {
                 if (ing_data.hint && ing_data.base) {
                     return `<span class="inline-flex items-center gap-1">${ing_data.name} <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">(ใช้ ${ing_data.base} กับ ${ing_data.hint})</span></span>`;
@@ -602,14 +714,36 @@
         }
     }
     
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    const sunIcon = document.getElementById('theme-icon-sun');
-    const moonIcon = document.getElementById('theme-icon-moon');
-    function applyTheme(theme) { if (theme === 'dark') { document.documentElement.classList.add('dark'); sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); localStorage.setItem('theme', 'dark'); } else { document.documentElement.classList.remove('dark'); sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); localStorage.setItem('theme', 'light'); } }
-    themeToggleBtn.addEventListener('click', () => { const currentTheme = localStorage.getItem('theme') || 'light'; applyTheme(currentTheme === 'light' ? 'dark' : 'light'); });
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (savedTheme) { applyTheme(savedTheme); } else { applyTheme(prefersDark ? 'dark' : 'light'); }
+    // --- [MODIFIED] Theme Toggle Logic ---
+    function applyTheme(theme) {
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        localStorage.setItem('theme', theme);
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+    });
+
+    // --- Initial Setup on Load ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // Apply saved theme or system preference
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (savedTheme) {
+            applyTheme(savedTheme);
+        } else {
+            applyTheme(prefersDark ? 'dark' : 'light');
+        }
+
+        // Set initial volume slider position
+        const savedVolume = localStorage.getItem('gameVolume') || '80';
+        volumeSlider.value = savedVolume;
+    });
 
 </script>
 </body>
