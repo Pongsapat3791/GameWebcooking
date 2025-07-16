@@ -93,6 +93,7 @@
             justify-content: center;
             padding: 0;
             border-radius: 9999px;
+            flex-shrink: 0; /* Prevent items from shrinking in flex container */
         }
         .item-in-plate {
             background-color: #dcfce7;
@@ -150,14 +151,52 @@
             from { transform: translateX(0); opacity: 1; }
             to { transform: translateX(120%); opacity: 0; }
         }
+
+        /* --- Mobile Landscape Layout --- */
+        /* This media query targets mobile devices in landscape mode. */
+        @media (orientation: landscape) and (max-height: 600px) {
+            #game-layout-container {
+                /* Switch to a horizontal flex layout */
+                display: flex;
+                flex-direction: row;
+                align-items: stretch;
+                /* Allow the container to scroll horizontally if needed, but not vertically */
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+
+            /* Define the flex properties for each of the 4 main columns */
+            #game-layout-container > div {
+                display: flex;
+                flex-direction: column;
+                flex-shrink: 0; /* Prevent columns from shrinking too much */
+            }
+
+            /* Column 1: Pass Left */
+            #game-layout-container > div:nth-child(1) {
+                width: 120px;
+            }
+            /* Column 2: Objectives & Trash */
+            #game-layout-container > div:nth-child(2) {
+                width: 280px;
+            }
+            /* Column 3: Player Area */
+            #game-layout-container > div:nth-child(3) {
+                width: 320px;
+            }
+            /* Column 4: Pass Right */
+            #game-layout-container > div:nth-child(4) {
+                width: 120px;
+            }
+        }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body class="flex items-center justify-center min-h-dvh p-2 sm:p-4">
 
     <audio id="lobby-music" loop></audio>
     <audio id="game-music" loop></audio>
 
-    <div id="main-container" class="w-full h-full max-w-screen-2xl bg-[var(--bg-secondary)] rounded-xl shadow-2xl p-6 transition-all duration-500 relative overflow-hidden flex flex-col">
+    <div id="main-container" class="w-full h-full max-w-screen-2xl bg-[var(--bg-secondary)] rounded-xl shadow-2xl p-4 sm:p-6 transition-all duration-500 relative overflow-hidden flex flex-col">
         
         <!-- ปุ่มสลับ Theme -->
         <div class="absolute top-4 right-4 z-10">
@@ -204,25 +243,26 @@
         <!-- หน้าจอเล่นเกม -->
         <div id="game-screen" class="hidden flex flex-col h-full">
             <!-- Game UI -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 text-center mb-4 p-3 bg-[var(--bg-tertiary)] rounded-lg text-sm md:text-base">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 text-center mb-4 p-2 md:p-3 bg-[var(--bg-tertiary)] rounded-lg text-xs sm:text-sm md:text-base flex-shrink-0">
                 <div>ด่าน: <span id="level" class="font-bold text-lg">1</span></div>
                 <div>คะแนน: <span id="score" class="font-bold text-lg">0</span> / <span id="target-score" class="font-bold text-lg">0</span></div>
                 <div class="text-2xl font-bold text-red-500 dark:text-red-400">เวลา: <span id="time">180</span></div>
                 <div><span id="player-count" class="font-bold text-lg">0</span> ผู้เล่น</div>
             </div>
 
-            <div class="grid grid-cols-12 gap-4 flex-grow" style="min-height: 0;">
+            <!-- MOBILE: stacks vertically. LANDSCAPE: flex row. DESKTOP: 12-col grid -->
+            <div id="game-layout-container" class="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-grow overflow-y-auto lg:overflow-hidden" style="min-height: 0;">
                 <!-- 1. Pass Left Zone -->
-                <div class="col-span-2 flex flex-col">
-                    <div id="pass-left-zone" class="drop-zone p-2 md:p-4 rounded-lg text-center bg-blue-100 dark:bg-blue-900/50 flex-grow flex flex-col items-center justify-center">
+                <div class="lg:col-span-2 flex flex-col">
+                    <div id="pass-left-zone" class="drop-zone p-2 md:p-4 rounded-lg text-center bg-blue-100 dark:bg-blue-900/50 flex-grow flex flex-col items-center justify-center min-h-[100px] lg:min-h-0">
                         <h4 class="text-xs md:text-sm font-bold text-blue-800 dark:text-blue-200">ส่งให้ (ซ้าย)</h4>
-                        <p id="pass-left-name" class="font-bold text-base md:text-xl text-blue-900 dark:text-blue-100 truncate"></p>
+                        <p id="pass-left-name" class="font-bold text-lg md:text-xl text-blue-900 dark:text-blue-100 truncate"></p>
                     </div>
                 </div>
 
                 <!-- 2. Objectives & Actions -->
-                <div class="col-span-3 space-y-4 flex flex-col">
-                    <div class="bg-yellow-50 dark:bg-yellow-900/50 p-3 rounded-lg flex-grow flex flex-col" style="min-height: 0;">
+                <div class="lg:col-span-3 space-y-4 flex flex-col">
+                    <div class="bg-yellow-50 dark:bg-yellow-900/50 p-3 rounded-lg flex-grow flex flex-col min-h-[200px] lg:min-h-0" style="min-height: 0;">
                         <h3 class="font-bold text-lg mb-2 text-center flex-shrink-0">เป้าหมาย</h3>
                         <ul id="objectives-list" class="space-y-2 overflow-y-auto">
                         </ul>
@@ -233,25 +273,26 @@
                 </div>
 
                 <!-- 3. Player Area -->
-                <div class="col-span-5 flex flex-col space-y-2">
+                <div class="lg:col-span-5 flex flex-col space-y-2">
                     <div class="text-center font-bold text-lg">พื้นที่ของ <span id="my-name" class="text-purple-600 dark:text-purple-400"></span></div>
-                    <div id="cooking-area" class="flex-grow p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex flex-col items-center relative">
+                    <div id="cooking-area" class="flex-grow p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex flex-col items-center relative min-h-[150px]">
                         <h4 class="font-bold text-gray-400 dark:text-gray-500 absolute top-2">พื้นที่ทำอาหาร</h4>
                         <div id="plate-container" class="w-full h-full flex items-center justify-center">
                            <!-- จานของผู้เล่นจะแสดงที่นี่ -->
                         </div>
                     </div>
-                    <div id="conveyor-belt" class="min-h-[80px] p-2 bg-[var(--bg-tertiary)] rounded-lg flex items-center flex-wrap gap-2 overflow-y-auto">
-                        <span class="text-[var(--text-secondary)]">วัตถุดิบที่ได้รับ...</span>
+                    <!-- Conveyor belt now scrolls horizontally on all screen sizes -->
+                    <div id="conveyor-belt" class="min-h-[80px] p-2 bg-[var(--bg-tertiary)] rounded-lg flex items-center flex-nowrap gap-2 overflow-x-auto">
+                        <span class="text-[var(--text-secondary)] flex-shrink-0">วัตถุดิบที่ได้รับ...</span>
                     </div>
                     <button id="submit-order-btn" class="w-full bg-green-500 text-white p-3 rounded-lg font-bold hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 transition">ส่งอาหาร</button>
                 </div>
 
                 <!-- 4. Pass Right Zone -->
-                <div class="col-span-2 flex flex-col">
-                     <div id="pass-right-zone" class="drop-zone p-2 md:p-4 rounded-lg text-center bg-green-100 dark:bg-green-900/50 flex-grow flex flex-col items-center justify-center">
+                <div class="lg:col-span-2 flex flex-col">
+                     <div id="pass-right-zone" class="drop-zone p-2 md:p-4 rounded-lg text-center bg-green-100 dark:bg-green-900/50 flex-grow flex flex-col items-center justify-center min-h-[100px] lg:min-h-0">
                         <h4 class="text-xs md:text-sm font-bold text-green-800 dark:text-green-200">ส่งให้ (ขวา)</h4>
-                        <p id="pass-right-name" class="font-bold text-base md:text-xl text-green-900 dark:text-green-100 truncate"></p>
+                        <p id="pass-right-name" class="font-bold text-lg md:text-xl text-green-900 dark:text-green-100 truncate"></p>
                     </div>
                 </div>
             </div>
@@ -665,7 +706,7 @@
     });
     socket.on('action_success', (data) => { showToast(data.message, 'success'); if (data.sound) playSound(data.sound); });
     socket.on('action_fail', (data) => { showToast(data.message, 'error'); if (data.sound) playSound(data.sound); });
-    socket.on('clear_all_items', () => { conveyorBelt.innerHTML = '<span class="text-[var(--text-secondary)]">วัตถุดิบที่ได้รับ...</span>'; });
+    socket.on('clear_all_items', () => { conveyorBelt.innerHTML = '<span class="text-[var(--text-secondary)] flex-shrink-0">วัตถุดิบที่ได้รับ...</span>'; });
     socket.on('level_complete', (data) => {
         playSound('levelUp');
         levelCompleteMessageEl.textContent = `คะแนนในด่าน ${data.level}: ${data.level_score}`;
