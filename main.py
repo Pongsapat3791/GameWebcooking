@@ -42,7 +42,7 @@ RECIPES = {
     'แซนด์วิช': {'ingredients': sorted(['🍞', '🍖', '🥬']), 'points': 80, 'time_bonus': 12},
     'สเต็ก': {'ingredients': sorted(['🥩', '🥔', '🥕']), 'points': 150, 'time_bonus': 20},
     'ไข่ดาว': {'ingredients': sorted(['🥚', '🥚']), 'points': 40, 'time_bonus': 8},
-    'พิซซ่า': {'ingredients': sorted(['🍕', '🥫', '🧀', '🍖']), 'points': 200, 'time_bonus': 25},
+    'พิซซ่า': {'ingredients': sorted(['🍕', '�', '🧀', '🍖']), 'points': 200, 'time_bonus': 25},
 }
 NEW_RECIPES = {
     'ต้มยำกุ้ง': {'ingredients': sorted(['🦐', '🍄', '🌶️']), 'points': 170, 'time_bonus': 22},
@@ -437,11 +437,39 @@ if __name__ == '__main__':
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        /* --- การตั้งค่าสีสำหรับ Theme --- */
+        :root {
+            --bg-primary: #f9fafb; /* gray-50 */
+            --bg-secondary: #ffffff; /* white */
+            --bg-tertiary: #f3f4f6; /* gray-100 */
+            --bg-interactive: #e5e7eb; /* gray-200 */
+            --text-primary: #111827; /* gray-900 */
+            --text-secondary: #6b7280; /* gray-500 */
+            --border-color: #d1d5db; /* gray-300 */
+            --accent-color: #f97316; /* orange-500 */
+            --accent-text-color: #ffffff;
+        }
+
+        html.dark {
+            --bg-primary: #1f2937; /* gray-800 */
+            --bg-secondary: #374151; /* gray-700 */
+            --bg-tertiary: #4b5563; /* gray-600 */
+            --bg-interactive: #505a68; /* custom */
+            --text-primary: #f3f4f6; /* gray-100 */
+            --text-secondary: #9ca3af; /* gray-400 */
+            --border-color: #4b5563; /* gray-600 */
+            --accent-color: #fb923c; /* orange-400 */
+            --accent-text-color: #111827;
+        }
+        
         body { 
             font-family: 'Kanit', sans-serif; 
             touch-action: none;
             overflow: hidden;
             overscroll-behavior: none;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s, color 0.3s;
         }
         .item, .plate {
             cursor: grab; 
@@ -465,7 +493,7 @@ if __name__ == '__main__':
             transform: scale(0.95);
         }
         .drop-zone { 
-            border: 2px dashed #ccc; 
+            border: 2px dashed var(--border-color);
             transition: all 0.2s; 
         }
         .drop-zone.drag-over { 
@@ -474,6 +502,10 @@ if __name__ == '__main__':
             transform: scale(1.02); 
             box-shadow: 0 0 15px rgba(74, 222, 128, 0.5);
         }
+        html.dark .drop-zone.drag-over {
+            background-color: #166534;
+        }
+
         .plate-items-container { min-height: 40px; }
 
         .item {
@@ -495,6 +527,10 @@ if __name__ == '__main__':
             padding: 4px;
             border-radius: 8px;
         }
+        html.dark .item-in-plate {
+            background-color: #15803d;
+            color: #dcfce7;
+        }
 
         .plate {
             cursor: default;
@@ -513,6 +549,8 @@ if __name__ == '__main__':
             transition: opacity 0.3s ease;
         }
         .popup-box {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
             transform: scale(0.7);
             opacity: 0;
         }
@@ -539,22 +577,37 @@ if __name__ == '__main__':
         }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
+<body class="flex items-center justify-center min-h-screen p-4">
 
     <audio id="lobby-music" loop></audio>
     <audio id="game-music" loop></audio>
 
-    <div id="main-container" class="w-full h-full max-w-screen-2xl bg-white rounded-xl shadow-2xl p-6 transition-all duration-500 relative overflow-hidden flex flex-col">
+    <div id="main-container" class="w-full h-full max-w-screen-2xl bg-[var(--bg-secondary)] rounded-xl shadow-2xl p-6 transition-all duration-500 relative overflow-hidden flex flex-col">
+        
+        <!-- ปุ่มสลับ Theme -->
+        <div class="absolute top-4 right-4 z-10">
+            <button id="theme-toggle" class="p-2 rounded-full bg-[var(--bg-interactive)] text-[var(--text-primary)]">
+                <!-- Sun Icon -->
+                <svg id="theme-icon-sun" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <!-- Moon Icon -->
+                <svg id="theme-icon-moon" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+            </button>
+        </div>
+
 
         <!-- หน้าจอสร้าง/เข้าร่วมห้อง -->
         <div id="login-screen" class="flex-grow flex flex-col justify-center">
-            <h1 class="text-4xl font-bold text-center text-orange-500 mb-6">ครัวอลหม่าน</h1>
+            <h1 class="text-4xl font-bold text-center text-[var(--accent-color)] mb-6">ครัวอลหม่าน</h1>
             <div class="max-w-sm mx-auto w-full">
-                <input id="player-name" type="text" placeholder="ใส่ชื่อของคุณ" class="w-full p-3 border rounded-lg mb-4 focus:ring-2 focus:ring-orange-400 focus:outline-none">
-                <input id="room-code-input" type="text" placeholder="ใส่รหัสห้อง (ถ้ามี)" class="w-full p-3 border rounded-lg mb-4 focus:ring-2 focus:ring-orange-400 focus:outline-none uppercase">
+                <input id="player-name" type="text" placeholder="ใส่ชื่อของคุณ" class="w-full p-3 border rounded-lg mb-4 focus:ring-2 focus:outline-none bg-[var(--bg-primary)] border-[var(--border-color)] focus:ring-[var(--accent-color)]">
+                <input id="room-code-input" type="text" placeholder="ใส่รหัสห้อง (ถ้ามี)" class="w-full p-3 border rounded-lg mb-4 focus:ring-2 focus:outline-none uppercase bg-[var(--bg-primary)] border-[var(--border-color)] focus:ring-[var(--accent-color)]">
                 <div class="flex space-x-4">
-                    <button id="join-btn" class="w-full bg-blue-500 text-white p-3 rounded-lg font-bold hover:bg-blue-600 transition">เข้าร่วมห้อง</button>
-                    <button id="create-btn" class="w-full bg-green-500 text-white p-3 rounded-lg font-bold hover:bg-green-600 transition">สร้างห้องใหม่</button>
+                    <button id="join-btn" class="w-full bg-blue-500 text-white p-3 rounded-lg font-bold hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition">เข้าร่วมห้อง</button>
+                    <button id="create-btn" class="w-full bg-green-500 text-white p-3 rounded-lg font-bold hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 transition">สร้างห้องใหม่</button>
                 </div>
             </div>
         </div>
@@ -562,68 +615,68 @@ if __name__ == '__main__':
         <!-- หน้าจอรอเล่น -->
         <div id="lobby-screen" class="hidden flex-grow flex flex-col justify-center">
             <h2 class="text-3xl font-bold text-center mb-2">ห้องรอเล่น</h2>
-            <p class="text-center text-gray-500 mb-4">รหัสห้อง: <span id="room-code-display" class="font-bold text-2xl text-red-500 bg-gray-200 px-3 py-1 rounded-md cursor-pointer" title="คลิกเพื่อคัดลอก"></span></p>
-            <div class="bg-gray-50 p-4 rounded-lg min-h-[200px] max-w-md mx-auto w-full">
+            <p class="text-center text-[var(--text-secondary)] mb-4">รหัสห้อง: <span id="room-code-display" class="font-bold text-2xl text-red-500 dark:text-red-400 bg-[var(--bg-tertiary)] px-3 py-1 rounded-md cursor-pointer" title="คลิกเพื่อคัดลอก"></span></p>
+            <div class="bg-[var(--bg-tertiary)] p-4 rounded-lg min-h-[200px] max-w-md mx-auto w-full">
                 <h3 class="font-bold mb-2">ผู้เล่นในห้อง:</h3>
                 <ul id="player-list" class="list-disc list-inside space-y-2"></ul>
             </div>
             <div class="max-w-md mx-auto w-full">
-                <button id="start-game-btn" class="hidden w-full mt-6 bg-orange-500 text-white p-4 rounded-lg font-bold text-xl hover:bg-orange-600 transition">เริ่มเกม!</button>
-                <button id="leave-room-btn" class="w-full mt-2 bg-red-500 text-white p-2 rounded-lg font-bold hover:bg-red-600 transition">ออกจากห้อง</button>
+                <button id="start-game-btn" class="hidden w-full mt-6 bg-[var(--accent-color)] text-[var(--accent-text-color)] p-4 rounded-lg font-bold text-xl hover:opacity-90 transition">เริ่มเกม!</button>
+                <button id="leave-room-btn" class="w-full mt-2 bg-red-500 text-white p-2 rounded-lg font-bold hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 transition">ออกจากห้อง</button>
             </div>
         </div>
 
         <!-- หน้าจอเล่นเกม -->
         <div id="game-screen" class="hidden flex flex-col h-full">
             <!-- Game UI -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 text-center mb-4 p-3 bg-gray-100 rounded-lg text-sm md:text-base">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 text-center mb-4 p-3 bg-[var(--bg-tertiary)] rounded-lg text-sm md:text-base">
                 <div>ด่าน: <span id="level" class="font-bold text-lg">1</span></div>
                 <div>คะแนน: <span id="score" class="font-bold text-lg">0</span> / <span id="target-score" class="font-bold text-lg">0</span></div>
-                <div class="text-2xl font-bold text-red-500">เวลา: <span id="time">180</span></div>
+                <div class="text-2xl font-bold text-red-500 dark:text-red-400">เวลา: <span id="time">180</span></div>
                 <div><span id="player-count" class="font-bold text-lg">0</span> ผู้เล่น</div>
             </div>
 
             <div class="grid grid-cols-12 gap-4 flex-grow" style="min-height: 0;">
                 <!-- 1. Pass Left Zone -->
                 <div class="col-span-2 flex flex-col">
-                    <div id="pass-left-zone" class="drop-zone p-2 md:p-4 rounded-lg text-center bg-blue-100 flex-grow flex flex-col items-center justify-center">
-                        <h4 class="text-xs md:text-sm font-bold text-blue-800">ส่งให้ (ซ้าย)</h4>
-                        <p id="pass-left-name" class="font-bold text-base md:text-xl text-blue-900 truncate"></p>
+                    <div id="pass-left-zone" class="drop-zone p-2 md:p-4 rounded-lg text-center bg-blue-100 dark:bg-blue-900/50 flex-grow flex flex-col items-center justify-center">
+                        <h4 class="text-xs md:text-sm font-bold text-blue-800 dark:text-blue-200">ส่งให้ (ซ้าย)</h4>
+                        <p id="pass-left-name" class="font-bold text-base md:text-xl text-blue-900 dark:text-blue-100 truncate"></p>
                     </div>
                 </div>
 
                 <!-- 2. Objectives & Actions -->
                 <div class="col-span-3 space-y-4 flex flex-col">
-                    <div class="bg-yellow-50 p-3 rounded-lg flex-grow flex flex-col" style="min-height: 0;">
+                    <div class="bg-yellow-50 dark:bg-yellow-900/50 p-3 rounded-lg flex-grow flex flex-col" style="min-height: 0;">
                         <h3 class="font-bold text-lg mb-2 text-center flex-shrink-0">เป้าหมาย</h3>
                         <ul id="objectives-list" class="space-y-2 overflow-y-auto">
                         </ul>
                     </div>
-                     <div id="trash-zone" class="drop-zone p-4 rounded-lg text-center bg-red-100 flex-shrink-0 h-24 flex items-center justify-center">
-                        <h4 class="font-bold text-red-800">ถังขยะ</h4>
+                     <div id="trash-zone" class="drop-zone p-4 rounded-lg text-center bg-red-100 dark:bg-red-900/50 flex-shrink-0 h-24 flex items-center justify-center">
+                        <h4 class="font-bold text-red-800 dark:text-red-200">ถังขยะ</h4>
                     </div>
                 </div>
 
                 <!-- 3. Player Area -->
                 <div class="col-span-5 flex flex-col space-y-2">
-                    <div class="text-center font-bold text-lg">พื้นที่ของ <span id="my-name" class="text-purple-600"></span></div>
-                    <div id="cooking-area" class="flex-grow p-2 bg-blue-50 rounded-lg flex flex-col items-center relative">
-                        <h4 class="font-bold text-gray-400 absolute top-2">พื้นที่ทำอาหาร</h4>
+                    <div class="text-center font-bold text-lg">พื้นที่ของ <span id="my-name" class="text-purple-600 dark:text-purple-400"></span></div>
+                    <div id="cooking-area" class="flex-grow p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex flex-col items-center relative">
+                        <h4 class="font-bold text-gray-400 dark:text-gray-500 absolute top-2">พื้นที่ทำอาหาร</h4>
                         <div id="plate-container" class="w-full h-full flex items-center justify-center">
                            <!-- จานของผู้เล่นจะแสดงที่นี่ -->
                         </div>
                     </div>
-                    <div id="conveyor-belt" class="min-h-[80px] p-2 bg-gray-200 rounded-lg flex items-center flex-wrap gap-2 overflow-y-auto">
-                        <span class="text-gray-500">วัตถุดิบที่ได้รับ...</span>
+                    <div id="conveyor-belt" class="min-h-[80px] p-2 bg-[var(--bg-tertiary)] rounded-lg flex items-center flex-wrap gap-2 overflow-y-auto">
+                        <span class="text-[var(--text-secondary)]">วัตถุดิบที่ได้รับ...</span>
                     </div>
-                    <button id="submit-order-btn" class="w-full bg-green-500 text-white p-3 rounded-lg font-bold hover:bg-green-600 transition">ส่งอาหาร</button>
+                    <button id="submit-order-btn" class="w-full bg-green-500 text-white p-3 rounded-lg font-bold hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 transition">ส่งอาหาร</button>
                 </div>
 
                 <!-- 4. Pass Right Zone -->
                 <div class="col-span-2 flex flex-col">
-                     <div id="pass-right-zone" class="drop-zone p-2 md:p-4 rounded-lg text-center bg-green-100 flex-grow flex flex-col items-center justify-center">
-                        <h4 class="text-xs md:text-sm font-bold text-green-800">ส่งให้ (ขวา)</h4>
-                        <p id="pass-right-name" class="font-bold text-base md:text-xl text-green-900 truncate"></p>
+                     <div id="pass-right-zone" class="drop-zone p-2 md:p-4 rounded-lg text-center bg-green-100 dark:bg-green-900/50 flex-grow flex flex-col items-center justify-center">
+                        <h4 class="text-xs md:text-sm font-bold text-green-800 dark:text-green-200">ส่งให้ (ขวา)</h4>
+                        <p id="pass-right-name" class="font-bold text-base md:text-xl text-green-900 dark:text-green-100 truncate"></p>
                     </div>
                 </div>
             </div>
@@ -631,35 +684,35 @@ if __name__ == '__main__':
 
         <!-- Popups and Overlays -->
         <div id="level-complete-screen" class="hidden screen-overlay">
-            <div class="bg-white p-8 rounded-xl shadow-2xl text-center popup-box">
-                <h1 id="level-complete-title" class="text-4xl font-bold text-green-500 mb-4">ผ่านด่าน!</h1>
+            <div class="p-8 rounded-xl shadow-2xl text-center popup-box">
+                <h1 id="level-complete-title" class="text-4xl font-bold text-green-500 dark:text-green-400 mb-4">ผ่านด่าน!</h1>
                 <p id="level-complete-message" class="text-xl mb-2"></p>
                 <p id="total-score-message" class="text-2xl mb-6"></p>
-                <p class="text-gray-500">เตรียมตัวสำหรับด่านต่อไป...</p>
+                <p class="text-[var(--text-secondary)]">เตรียมตัวสำหรับด่านต่อไป...</p>
             </div>
         </div>
         <div id="game-over-screen" class="hidden screen-overlay">
-            <div class="bg-white p-8 rounded-xl shadow-2xl text-center popup-box">
-                <h1 class="text-5xl font-bold text-red-600 mb-4">เกมจบแล้ว!</h1>
-                <p id="game-over-message" class="text-xl text-gray-600 mb-4"></p>
+            <div class="p-8 rounded-xl shadow-2xl text-center popup-box">
+                <h1 class="text-5xl font-bold text-red-600 dark:text-red-500 mb-4">เกมจบแล้ว!</h1>
+                <p id="game-over-message" class="text-xl text-[var(--text-secondary)] mb-4"></p>
                 <p class="text-2xl mb-6">คะแนนรวมทั้งหมด: <span id="final-total-score" class="font-bold">0</span></p>
-                <button id="back-to-lobby-btn" class="bg-blue-500 text-white p-3 rounded-lg font-bold hover:bg-blue-600 transition">กลับไปที่ล็อบบี้</button>
+                <button id="back-to-lobby-btn" class="bg-blue-500 text-white p-3 rounded-lg font-bold hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition">กลับไปที่ล็อบบี้</button>
             </div>
         </div>
         <div id="game-won-screen" class="hidden screen-overlay">
-            <div class="bg-white p-8 rounded-xl shadow-2xl text-center popup-box">
-                <h1 class="text-5xl font-bold text-yellow-500 mb-4">คุณชนะ!</h1>
-                <p class="text-xl text-gray-600 mb-4">สุดยอดไปเลย! คุณผ่านทุกด่านแล้ว</p>
+            <div class="p-8 rounded-xl shadow-2xl text-center popup-box">
+                <h1 class="text-5xl font-bold text-yellow-500 dark:text-yellow-400 mb-4">คุณชนะ!</h1>
+                <p class="text-xl text-[var(--text-secondary)] mb-4">สุดยอดไปเลย! คุณผ่านทุกด่านแล้ว</p>
                 <p class="text-2xl mb-6">คะแนนรวมทั้งหมด: <span id="final-won-score" class="font-bold">0</span></p>
-                <button id="won-back-to-lobby-btn" class="bg-blue-500 text-white p-3 rounded-lg font-bold hover:bg-blue-600 transition">กลับไปที่ล็อบบี้</button>
+                <button id="won-back-to-lobby-btn" class="bg-blue-500 text-white p-3 rounded-lg font-bold hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition">กลับไปที่ล็อบบี้</button>
             </div>
         </div>
     </div>
 
     <div id="popup-overlay" class="hidden screen-overlay" style="z-index: 100;">
-        <div class="popup-box bg-white p-6 rounded-xl shadow-2xl text-center w-full max-w-sm mx-4">
-            <p id="popup-message" class="text-lg mb-6 text-gray-700"></p>
-            <button id="popup-close-btn" class="w-full bg-blue-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-600 transition focus:outline-none focus:ring-2 focus:ring-blue-400">ตกลง</button>
+        <div class="popup-box p-6 rounded-xl shadow-2xl text-center w-full max-w-sm mx-4">
+            <p id="popup-message" class="text-lg mb-6"></p>
+            <button id="popup-close-btn" class="w-full bg-blue-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-400">ตกลง</button>
         </div>
     </div>
 
@@ -912,7 +965,7 @@ if __name__ == '__main__':
     function createItemElement(itemName) {
         const item = document.createElement('div');
         item.textContent = itemName;
-        item.className = 'item bg-yellow-200 text-yellow-800 font-semibold shadow-sm m-1';
+        item.className = 'item bg-yellow-200 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-100 font-semibold shadow-sm m-1';
         item.id = 'item-' + Date.now() + Math.random();
         const data = {type: 'ingredient', name: itemName};
         item.addEventListener('mousedown', (e) => startDrag(e, data, item));
@@ -922,11 +975,11 @@ if __name__ == '__main__':
 
     function createPlateElement(contents = []) {
         const plate = document.createElement('div');
-        plate.className = 'plate drop-zone bg-white p-3 rounded-lg shadow-md w-4/5 flex flex-col items-center';
+        plate.className = 'plate drop-zone bg-[var(--bg-secondary)] p-3 rounded-lg shadow-md w-4/5 flex flex-col items-center border-[var(--border-color)]';
         plate.id = 'plate-' + Date.now() + Math.random();
         plate.dataset.contents = JSON.stringify(contents);
         const title = document.createElement('span');
-        title.className = 'font-bold text-sm mb-2 text-gray-600';
+        title.className = 'font-bold text-sm mb-2 text-[var(--text-secondary)]';
         title.textContent = 'จาน';
         plate.appendChild(title);
         const itemsContainer = document.createElement('div');
@@ -990,7 +1043,7 @@ if __name__ == '__main__':
         if (currentRoomId !== data.room_id) return;
         playerList.innerHTML = '';
         data.players.forEach(p => {
-            const li = document.createElement('li'); li.className = 'text-gray-700';
+            const li = document.createElement('li'); li.className = 'text-[var(--text-primary)]';
             li.textContent = p.name;
             if (p.sid === data.host_sid) {
                  const hostTag = document.createElement('span');
@@ -1027,7 +1080,7 @@ if __name__ == '__main__':
     });
     socket.on('receive_item', (data) => {
         playSound('receive');
-        const placeholder = conveyorBelt.querySelector('span.text-gray-500');
+        const placeholder = conveyorBelt.querySelector('span');
         if (placeholder) placeholder.remove();
         const itemData = data.item;
         if (itemData.type === 'ingredient') {
@@ -1037,7 +1090,7 @@ if __name__ == '__main__':
     });
     socket.on('action_success', (data) => { showToast(data.message, 'success'); if (data.sound) playSound(data.sound); });
     socket.on('action_fail', (data) => { showToast(data.message, 'error'); if (data.sound) playSound(data.sound); });
-    socket.on('clear_all_items', () => { conveyorBelt.innerHTML = '<span class="text-gray-500">วัตถุดิบที่ได้รับ...</span>'; });
+    socket.on('clear_all_items', () => { conveyorBelt.innerHTML = '<span class="text-[var(--text-secondary)]">วัตถุดิบที่ได้รับ...</span>'; });
     socket.on('level_complete', (data) => {
         playSound('levelUp');
         levelCompleteMessageEl.textContent = `คะแนนในด่าน ${data.level}: ${data.level_score}`;
@@ -1073,10 +1126,10 @@ if __name__ == '__main__':
             myCurrentObjectiveIngredients = myObjectiveDisplay.ingredients;
             const ingredients = myObjectiveDisplay.ingredients.join(' ');
             objectivesListEl.innerHTML = `
-                <li class="bg-green-100 p-3 rounded-lg shadow-sm border-l-4 border-green-500">
-                    <div class="font-bold text-green-800 text-lg">${myObjectiveDisplay.objective_name}</div>
-                    <div class="text-xs text-gray-500 mb-1">(${myObjectiveDisplay.points} คะแนน)</div>
-                    <div class="text-sm text-gray-600">ส่วนผสม:</div>
+                <li class="bg-green-100 dark:bg-green-900/50 p-3 rounded-lg shadow-sm border-l-4 border-green-500 dark:border-green-400">
+                    <div class="font-bold text-green-800 dark:text-green-200 text-lg">${myObjectiveDisplay.objective_name}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">(${myObjectiveDisplay.points} คะแนน)</div>
+                    <div class="text-sm text-gray-600 dark:text-gray-300">ส่วนผสม:</div>
                     <div class="text-2xl mt-1">${ingredients}</div>
                 </li>`;
         } else {
@@ -1091,6 +1144,41 @@ if __name__ == '__main__':
             plateContainer.appendChild(createPlateElement(myState.plate));
         }
     }
+    
+    // --- ระบบ Theme ---
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const sunIcon = document.getElementById('theme-icon-sun');
+    const moonIcon = document.getElementById('theme-icon-moon');
+
+    function applyTheme(theme) {
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+            sunIcon.classList.remove('hidden');
+            moonIcon.classList.add('hidden');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            sunIcon.classList.add('hidden');
+            moonIcon.classList.remove('hidden');
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+    });
+
+    // ตั้งค่า Theme เริ่มต้นเมื่อโหลดหน้า
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (savedTheme) {
+        applyTheme(savedTheme);
+    } else {
+        applyTheme(prefersDark ? 'dark' : 'light');
+    }
+
 </script>
 </body>
 </html>
@@ -1099,4 +1187,6 @@ if __name__ == '__main__':
         f.write(html_content)
 
     print("เซิร์ฟเวอร์กำลังจะเริ่มที่ http://127.0.0.1:5000")
+    # ใช้ use_reloader=False เพื่อป้องกันการรันซ้ำซ้อนใน debug mode
+    # ซึ่งอาจทำให้เกิดปัญหา background task ทำงานซ้ำได้
     socketio.run(app, host='0.0.0.0', port=5000, debug=False)
