@@ -41,13 +41,8 @@ RECIPES = {
     'เบอร์เกอร์': {'ingredients': sorted(['🍞', '🥩', '🧀']), 'points': 100, 'time_bonus': 15},
     'แซนด์วิช': {'ingredients': sorted(['🍞', '🍖', '🥬']), 'points': 80, 'time_bonus': 12},
     'สเต็ก': {'ingredients': sorted(['🥩', '🥔', '🥕']), 'points': 150, 'time_bonus': 20},
-    'ไข่ดาว': {'ingredients': sorted(['🥚', '🥚']), 'points': 40, 'time_bonus': 8},
-    'พิซซ่า': {'ingredients': sorted(['🍕', '🍄', '🧀', '🍖']), 'points': 200, 'time_bonus': 25},
-    'ต้มยำกุ้ง': {'ingredients': sorted(['�', '🍄', '🌶️']), 'points': 170, 'time_bonus': 22},
-    'ผัดไทย': {'ingredients': sorted(['🍜', '🦐', '🥜']), 'points': 160, 'time_bonus': 21},
-    'ข้าวผัด': {'ingredients': sorted(['🍚', '🥚', '🥕']), 'points': 90, 'time_bonus': 13},
     'แกงเขียวหวาน': {'ingredients': sorted(['🍗', '🍆', '🥥']), 'points': 190, 'time_bonus': 24},
-    'ซูชิ': {'ingredients': sorted(['🍣', '🍚', '🐟']), 'points': 130, 'time_bonus': 18},
+    
     'สปาเก็ตตี้': {'ingredients': sorted(['🍝', '🥫', '🥩']), 'points': 110, 'time_bonus': 16},
     'ไอศกรีม': {'ingredients': sorted(['🍨', '🍒']), 'points': 35, 'time_bonus': 7},
     'ผลไม้รวม': {'ingredients': sorted(['🍓', '🍌', '🍎']), 'points': 30, 'time_bonus': 5},
@@ -56,16 +51,20 @@ RECIPES = {
 ABILITIES_CONFIG = {
     'กระทะ': {'verb': 'ทอด', 'transformations': {'🥚': '🍳', '🥩': '🥓'}},
     'หม้อ': {'verb': 'ต้ม', 'transformations': {'🦐': '🦞', '🥔': '🍟'}},
-    'เขียง': {'verb': 'หั่น', 'transformations': {'🥬': '🥗', '🥕': '🥒'}}
+    'เขียง': {'verb': 'หั่น', 'transformations': {'🥬': '🥗', '🥕': '🥒','🐟': '🍣'}}
 }
 
 # --- [แก้ไข] ย้ายสูตรที่ต้องแปรรูปวัตถุดิบมารวมกันที่นี่ ---
 TRANSFORMED_RECIPES = {
-    'อาหารเช้าชุดใหญ่': {'ingredients': sorted(['🍳', '🥓', '🍞']), 'points': 180, 'time_bonus': 20},
-    'สเต็กแอนด์ฟรายส์': {'ingredients': sorted(['🥓', '🍟', '🥗']), 'points': 220, 'time_bonus': 25},
+    # หม้อ
     'ซีฟู้ดต้ม': {'ingredients': sorted(['🦞', '🍄', '🌶️']), 'points': 200, 'time_bonus': 22},
-    'สลัดสุขภาพ': {'ingredients': sorted(['🥗', '🥒', '🍅']), 'points': 160, 'time_bonus': 18},
     'ไก่ทอด': {'ingredients': sorted(['🍗', '🍟']), 'points': 60, 'time_bonus': 10},
+    # กระทะ
+    'อาหารเช้าชุดใหญ่': {'ingredients': sorted(['🍳', '🍞', '🍄']), 'points': 170, 'time_bonus': 20},
+    'สเต็กแอนด์ฟรายส์': {'ingredients': sorted(['🥓', '🥕', '🍄']), 'points': 210, 'time_bonus': 24},
+    #เขียง
+    'ซูชิ': {'ingredients': sorted(['🍣', '🥬']), 'points': 130, 'time_bonus': 18},
+    'สลัดสุขภาพ': {'ingredients': sorted(['🥗', '🥕', '🍅']), 'points': 160, 'time_bonus': 18},
     'ส้มตำ': {'ingredients': sorted(['🥗', '🌶️', '🍅', '🥜']), 'points': 140, 'time_bonus': 19},
 }
 
@@ -97,9 +96,9 @@ for ability, config in ABILITIES_CONFIG.items():
 
 # การตั้งค่าด่าน
 LEVEL_DEFINITIONS = {
-    1: {'target_score': 300, 'time': 180, 'spawn_interval': 4},
-    2: {'target_score': 500, 'time': 180, 'spawn_interval': 3},
-    3: {'target_score': 800, 'time': 180, 'spawn_interval': 3},
+    1: {'target_score': 300, 'time': 120, 'spawn_interval': 4},
+    2: {'target_score': 475, 'time': 110, 'spawn_interval': 3},
+    3: {'target_score': 750, 'time': 100, 'spawn_interval': 3},
 }
 
 # ฟังก์ชันเสริมสำหรับจัดการเป้าหมาย
