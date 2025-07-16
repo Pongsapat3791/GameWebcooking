@@ -89,6 +89,12 @@ for ability_config in ABILITIES_CONFIG.values():
     for base, transformed in ability_config['transformations'].items():
         TRANSFORMED_TO_BASE_INGREDIENT[transformed] = base
 
+# --- [เพิ่ม] สร้าง dict สำหรับค้นหาว่าวัตถุดิบแปรรูปมาจากความสามารถอะไร ---
+TRANSFORMED_ING_INFO = {}
+for ability, config in ABILITIES_CONFIG.items():
+    for transformed_ing in config['transformations'].values():
+        TRANSFORMED_ING_INFO[transformed_ing] = ability
+
 # การตั้งค่าด่าน
 LEVEL_DEFINITIONS = {
     1: {'target_score': 300, 'time': 180, 'spawn_interval': 4},
@@ -221,7 +227,19 @@ def get_augmented_state_for_ui(room_id):
         objective_data = p_state.get('objective')
         if objective_data and 'name' in objective_data:
             recipe_details = RECIPES[objective_data['name']]
-            all_player_objectives.append({'player_name': player_name, 'objective_name': objective_data['name'], 'ingredients': recipe_details['ingredients'], 'points': recipe_details['points']})
+            # --- [แก้ไข] เพิ่มข้อมูลเกี่ยวกับวิธีทำวัตถุดิบแปรรูป ---
+            ingredients_with_hints = []
+            for ing in recipe_details['ingredients']:
+                hint = TRANSFORMED_ING_INFO.get(ing)
+                base = TRANSFORMED_TO_BASE_INGREDIENT.get(ing)
+                ingredients_with_hints.append({'name': ing, 'hint': hint, 'base': base})
+            
+            all_player_objectives.append({
+                'player_name': player_name, 
+                'objective_name': objective_data['name'], 
+                'ingredients': ingredients_with_hints, # ส่งข้อมูลใหม่
+                'points': recipe_details['points']
+            })
     ui_state['all_player_objectives'] = all_player_objectives
     return ui_state
 
@@ -553,10 +571,6 @@ if __name__ == '__main__':
                         <h3 class="font-bold text-lg mb-2 text-center flex-shrink-0">เป้าหมาย</h3>
                         <ul id="objectives-list" class="space-y-2 overflow-y-auto"></ul>
                     </div>
-                    <div id="ability-guide" class="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg flex-shrink-0">
-                        <h3 class="font-bold text-center mb-2 text-sm">ความสามารถของคุณ</h3>
-                        <ul id="ability-guide-list" class="text-xs space-y-1"></ul>
-                    </div>
                      <div id="trash-zone" class="drop-zone p-4 rounded-lg text-center bg-red-100 dark:bg-red-900/50 flex-shrink-0 h-24 flex items-center justify-center">
                         <h4 class="font-bold text-red-800 dark:text-red-200">ถังขยะ</h4>
                     </div>
@@ -681,7 +695,6 @@ if __name__ == '__main__':
     const backToLobbyBtn = document.getElementById('back-to-lobby-btn');
     const wonBackToLobbyBtn = document.getElementById('won-back-to-lobby-btn');
     const abilityStationEl = document.getElementById('ability-station');
-    const abilityGuideListEl = document.getElementById('ability-guide-list');
 
     function showScreen(screenName) {
         allScreens.forEach(id => screens[id].classList.add('hidden'));
@@ -885,27 +898,6 @@ if __name__ == '__main__':
         return plate;
     }
 
-    function populateAbilityGuide() {
-        abilityGuideListEl.innerHTML = '';
-        if (myAbility && ABILITIES_CONFIG[myAbility]) {
-            const abilityName = myAbility;
-            const config = ABILITIES_CONFIG[abilityName];
-            let transformationsHtml = '';
-            for (const input in config.transformations) {
-                const output = config.transformations[input];
-                transformationsHtml += `<span class="font-mono p-1 bg-gray-200 dark:bg-gray-700 rounded">${input} → ${output}</span> `;
-            }
-            const li = document.createElement('li');
-            li.className = 'flex flex-col sm:flex-row sm:items-center gap-1';
-            li.innerHTML = `<strong class="flex-shrink-0 text-indigo-800 dark:text-indigo-200">${abilityName}:</strong> <span class="flex flex-wrap gap-1">${transformationsHtml}</span>`;
-            abilityGuideListEl.appendChild(li);
-        } else {
-            const li = document.createElement('li');
-            li.textContent = 'คุณไม่มีความสามารถพิเศษ';
-            abilityGuideListEl.appendChild(li);
-        }
-    }
-
     createBtn.addEventListener('click', () => { initAudio(); playSound('click'); myName = playerNameInput.value.trim(); if (!myName) { showPopup('กรุณาใส่ชื่อของคุณ!'); return; } socket.emit('create_room', { name: myName }); });
     joinBtn.addEventListener('click', () => { initAudio(); playSound('click'); myName = playerNameInput.value.trim(); const roomId = roomCodeInput.value.trim().toUpperCase(); if (!myName || !roomId) { showPopup('กรุณาใส่ชื่อและรหัสห้อง!'); return; } socket.emit('join_room', { name: myName, room_id: roomId }); });
     leaveRoomBtn.addEventListener('click', () => { playSound('click'); location.reload(); });
@@ -973,14 +965,23 @@ if __name__ == '__main__':
         const myObjectiveDisplay = state.all_player_objectives.find(obj => obj.player_name === myName);
         objectivesListEl.innerHTML = '';
         if (myObjectiveDisplay) {
-            myCurrentObjectiveIngredients = myObjectiveDisplay.ingredients;
-            const ingredients = myObjectiveDisplay.ingredients.join(' ');
+            myCurrentObjectiveIngredients = myObjectiveDisplay.ingredients.map(i => i.name);
+            
+            // --- [แก้ไข] แสดงข้อมูลว่าวัตถุดิบแปรรูปมาจากไหน ---
+            const ingredientsHtml = myObjectiveDisplay.ingredients.map(ing_data => {
+                if (ing_data.hint && ing_data.base) {
+                    return `<span class="inline-flex items-center gap-1">${ing_data.name} <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">(ใช้ ${ing_data.base} กับ ${ing_data.hint})</span></span>`;
+                } else {
+                    return `<span>${ing_data.name}</span>`;
+                }
+            }).join(' ');
+
             objectivesListEl.innerHTML = `
                 <li class="bg-green-100 dark:bg-green-900/50 p-3 rounded-lg shadow-sm border-l-4 border-green-500 dark:border-green-400">
                     <div class="font-bold text-green-800 dark:text-green-200 text-lg">${myObjectiveDisplay.objective_name}</div>
                     <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">(${myObjectiveDisplay.points} คะแนน)</div>
                     <div class="text-sm text-gray-600 dark:text-gray-300">ส่วนผสม:</div>
-                    <div class="text-2xl mt-1">${ingredients}</div>
+                    <div class="text-2xl mt-1 flex flex-wrap gap-x-3 gap-y-1">${ingredientsHtml}</div>
                 </li>`;
         } else {
             myCurrentObjectiveIngredients = [];
@@ -994,8 +995,6 @@ if __name__ == '__main__':
             isAbilityProcessing = !!myState.ability_processing;
             const ability = myState.ability;
             const processing = myState.ability_processing;
-
-            populateAbilityGuide();
 
             if (processing) {
                 const updateTimer = () => {
