@@ -60,13 +60,8 @@
             </div>
 
             <div id="game-layout-container" class="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-grow overflow-y-auto lg:overflow-hidden" style="min-height: 0;">
-                <div class="lg:col-span-2 flex flex-col">
-                    <div id="pass-left-zone" class="drop-zone p-2 md:p-4 rounded-lg text-center bg-blue-100 dark:bg-blue-900/50 flex-grow flex flex-col items-center justify-center min-h-[100px] lg:min-h-0">
-                        <h4 class="text-xs md:text-sm font-bold text-blue-800 dark:text-blue-200">ส่งให้ (ซ้าย)</h4>
-                        <p id="pass-left-name" class="font-bold text-lg md:text-xl text-blue-900 dark:text-blue-100 truncate"></p>
-                    </div>
-                </div>
-
+                
+                <!-- Column 1: Objectives & Trash (Far Left) -->
                 <div class="lg:col-span-3 space-y-4 flex flex-col">
                     <div class="bg-yellow-50 dark:bg-yellow-900/50 p-3 rounded-lg flex-grow flex flex-col min-h-[200px] lg:min-h-0" style="min-height: 0;">
                         <h3 class="font-bold text-lg mb-2 text-center flex-shrink-0">เป้าหมาย</h3>
@@ -76,7 +71,15 @@
                         <h4 class="font-bold text-red-800 dark:text-red-200">ถังขยะ</h4>
                     </div>
                 </div>
+                <!-- Column 2: Pass Left -->
+                <div class="lg:col-span-2 flex flex-col">
+                    <div id="pass-left-zone" class="drop-zone p-2 md:p-4 rounded-lg text-center bg-blue-100 dark:bg-blue-900/50 flex-grow flex flex-col items-center justify-center min-h-[100px] lg:min-h-0">
+                        <h4 class="text-xs md:text-sm font-bold text-blue-800 dark:text-blue-200">ส่งให้ (ซ้าย)</h4>
+                        <p id="pass-left-name" class="font-bold text-lg md:text-xl text-blue-900 dark:text-blue-100 truncate"></p>
+                    </div>
+                </div>
 
+                <!-- Column 3: Main Player Area -->
                 <div class="lg:col-span-5 flex flex-col space-y-2">
                     <div class="text-center font-bold text-lg">พื้นที่ของ <span id="my-name" class="text-purple-600 dark:text-purple-400"></span></div>
                     
@@ -93,13 +96,14 @@
                     </div>
                     <button id="submit-order-btn" class="w-full bg-green-500 text-white p-3 rounded-lg font-bold hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 transition">ส่งอาหาร</button>
                 </div>
-
+                <!-- Column 4: Pass Right (Unchanged) -->
                 <div class="lg:col-span-2 flex flex-col">
                      <div id="pass-right-zone" class="drop-zone p-2 md:p-4 rounded-lg text-center bg-green-100 dark:bg-green-900/50 flex-grow flex flex-col items-center justify-center min-h-[100px] lg:min-h-0">
                         <h4 class="text-xs md:text-sm font-bold text-green-800 dark:text-green-200">ส่งให้ (ขวา)</h4>
                         <p id="pass-right-name" class="font-bold text-lg md:text-xl text-green-900 dark:text-green-100 truncate"></p>
                     </div>
                 </div>
+
             </div>
         </div>
 

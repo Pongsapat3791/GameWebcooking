@@ -45,9 +45,9 @@ ABILITIES_CONFIG = {
 }
 
 LEVEL_DEFINITIONS = {
-    1: {'target_score': 300, 'time': 120, 'spawn_interval': 4},
-    2: {'target_score': 475, 'time': 110, 'spawn_interval': 3},
-    3: {'target_score': 750, 'time': 100, 'spawn_interval': 3},
+    1: {'target_score': 300, 'time': 130, 'spawn_interval': 3},
+    2: {'target_score': 475, 'time': 120, 'spawn_interval': 3},
+    3: {'target_score': 750, 'time': 110, 'spawn_interval': 3},
 }
 
 # --- สร้างข้อมูลอ้างอิงเพื่อการค้นหาที่รวดเร็ว ---
